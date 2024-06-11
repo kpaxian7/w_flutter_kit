@@ -25,8 +25,10 @@ PreferredSizeWidget createAppBar(
       },
       child: Image.asset(
         "images/icon_back.png",
-        height: 18,
-        width: 10,
+        package: "wflutter_kit",
+        color: Colors.black,
+        height: 20,
+        width: 20,
       ),
     ),
   );
