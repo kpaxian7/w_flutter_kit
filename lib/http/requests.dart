@@ -11,7 +11,8 @@ class Requests with RequestDioConfig {
   static Requests? _instance;
 
   Requests._() {
-    initDioRequest(baseUrl: "https://dart.dev");
+    //https://httpbin.org/get
+    initDioRequest(baseUrl: "https://httpbin.org");
   }
 
   factory Requests.instance() {
@@ -19,15 +20,27 @@ class Requests with RequestDioConfig {
     return _instance!;
   }
 
-  getRequest() {}
+  getRequest({
+    required String path,
+    Map<String, String>? headers,
+    Map<String, dynamic>? params,
+  }) async {
+    await _performRequest(path, RequestMethod.get);
+  }
 
-  postRequest() {}
+  postRequest(
+    String path,
+    Map<String, String>? headers,
+    Map<String, dynamic>? params,
+  ) async {
+    await _performRequest(path, RequestMethod.post);
+  }
 
   _performRequest(
     String path,
     RequestMethod method, {
     Map<String, dynamic>? params,
-  }) async{
+  }) async {
     Response<Map>? resp;
     if (method == RequestMethod.get) {
       resp = await dio?.get<Map>(
@@ -43,6 +56,6 @@ class Requests with RequestDioConfig {
       );
     }
 
-
+    return resp;
   }
 }
