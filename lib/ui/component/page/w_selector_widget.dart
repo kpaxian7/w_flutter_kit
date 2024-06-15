@@ -7,7 +7,7 @@ abstract class WSelectorWidget<E, P extends ChangeNotifier>
 
   @override
   Widget build(BuildContext context) {
-    return Selector<P, E>(
+    return Selector<P, E?>(
       selector: (ctx, p) {
         return selectorParams(p);
       },
@@ -18,9 +18,9 @@ abstract class WSelectorWidget<E, P extends ChangeNotifier>
     );
   }
 
-  E selectorParams(P p);
+  E? selectorParams(P p);
 
-  Widget buildBodyWidget(BuildContext context, E value);
+  Widget buildBodyWidget(BuildContext context, E? value);
 
   bool shouldRebuild(previous, next) {
     return previous != next;
