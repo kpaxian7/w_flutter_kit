@@ -10,61 +10,57 @@ import 'package:wflutter_kit/ui/view_model/w_notifier.dart';
 /// appbar builder
 typedef AppBarBuilder = PreferredSizeWidget Function(BuildContext context);
 
-typedef PageVisibleChanged = Function(BuildContext context);
+typedef PageVisibleChanged = void Function(BuildContext context);
 
-class WBasePage extends StatelessWidget {
-  final WidgetBuilder bodyBuilder;
-  final List<WNotifier> providers;
-
-  final AppBarBuilder? appBarBuilder;
-  final Color? scaffoldColor;
-  final PageVisibleChanged? onPageResume;
-  final PageVisibleChanged? onPagePause;
-
-  const WBasePage({
-    required this.bodyBuilder,
-    required this.providers,
-    this.appBarBuilder,
-    this.scaffoldColor,
-    this.onPageResume,
-    this.onPagePause,
-    super.key,
-  });
+abstract class WBasePage extends StatelessWidget {
+  const WBasePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    List<SingleChildWidget> providerWidgets = providers
-        .map((e) => ChangeNotifierProvider(create: (ctx) {
-              return e;
-            }))
-        .toList();
     return MultiProvider(
-      providers: providerWidgets,
-      child: WBaseInnerPage(
-        bodyBuilder: bodyBuilder,
-        providers: providers,
-        appBarBuilder: appBarBuilder,
-        scaffoldColor: scaffoldColor,
-        onPageResume: onPageResume,
-        onPagePause: onPagePause,
+      providers: createViewModel(context),
+      child: Builder(
+        builder: (ctx) {
+          return WBaseInnerPage(
+            bodyWidget: bodyBuilder(ctx),
+            appbarWidget: appbarBuilder(ctx),
+            scaffoldColor: backgroundColor(),
+            onPageResume: onPageResume,
+            onPagePause: onPagePause,
+          );
+        },
       ),
     );
+  }
+
+  List<SingleChildWidget> createViewModel(BuildContext context);
+
+  PreferredSizeWidget? appbarBuilder(BuildContext context) {
+    return null;
+  }
+
+  Widget bodyBuilder(BuildContext context);
+
+  void onPageResume(BuildContext context) {}
+
+  void onPagePause(BuildContext context) {}
+
+  Color backgroundColor() {
+    return Colors.white;
   }
 }
 
 class WBaseInnerPage extends StatefulWidget {
-  final WidgetBuilder bodyBuilder;
-  final List<WNotifier> providers;
+  final Widget bodyWidget;
 
-  final AppBarBuilder? appBarBuilder;
+  final PreferredSizeWidget? appbarWidget;
   final Color? scaffoldColor;
   final PageVisibleChanged? onPageResume;
   final PageVisibleChanged? onPagePause;
 
   const WBaseInnerPage({
-    required this.bodyBuilder,
-    required this.providers,
-    this.appBarBuilder,
+    required this.bodyWidget,
+    this.appbarWidget,
     this.scaffoldColor,
     this.onPageResume,
     this.onPagePause,
@@ -80,8 +76,8 @@ class _WBaseInnerPageState extends WLifecycleState<WBaseInnerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: widget.scaffoldColor,
-      appBar: widget.appBarBuilder?.call(context),
-      body: widget.bodyBuilder.call(context),
+      appBar: widget.appbarWidget,
+      body: widget.bodyWidget,
     );
   }
 

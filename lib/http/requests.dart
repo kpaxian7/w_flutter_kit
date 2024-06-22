@@ -1,45 +1,51 @@
 import 'package:dio/dio.dart';
-import 'package:wflutter_kit/http/request_config.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:wflutter_kit/http/dio_config.dart';
+import 'package:wflutter_kit/http/model/base/base_model.dart';
 import 'package:wflutter_kit/http/request_helper.dart';
+import 'dart:convert';
 
 enum RequestMethod {
   get,
   post,
 }
 
-class Requests with RequestDioConfig {
-  static Requests? _instance;
-
-  Requests._() {
-    //https://httpbin.org/get
-    initDioRequest(baseUrl: "https://httpbin.org");
+abstract class Requests with DioConfig {
+  initialize() {
+    initDioInstance(baseUrl: baseUrl());
   }
 
-  factory Requests.instance() {
-    _instance ??= Requests._();
-    return _instance!;
-  }
-
-  getRequest({
+  getRequest<T>({
     required String path,
     Map<String, String>? headers,
     Map<String, dynamic>? params,
+    T Function(Object? json)? fromJsonFunc,
   }) async {
-    await _performRequest(path, RequestMethod.get);
+    return await _performRequest(
+      path,
+      RequestMethod.get,
+      params: params,
+    );
   }
 
-  postRequest(
-    String path,
+  postRequest<T>({
+    required String path,
     Map<String, String>? headers,
     Map<String, dynamic>? params,
-  ) async {
-    await _performRequest(path, RequestMethod.post);
+    T Function(Object? json)? fromJsonFunc,
+  }) async {
+    return await _performRequest(
+      path,
+      RequestMethod.post,
+      params: params,
+    );
   }
 
-  _performRequest(
+  _performRequest<T>(
     String path,
     RequestMethod method, {
     Map<String, dynamic>? params,
+    T Function(Object? json)? fromJsonFunc,
   }) async {
     Response<Map>? resp;
     if (method == RequestMethod.get) {
@@ -49,13 +55,29 @@ class Requests with RequestDioConfig {
           params,
         ),
       );
-    } else {
-      resp = await dio?.post(
+    } else if (method == RequestMethod.post) {
+      resp = await dio?.post<Map>(
         path,
-        data: params,
+        data: params, // 将数据转换为 JSON 格式的字符串
       );
     }
+    BaseModel? baseModel;
+    if (resp != null) {
+      baseModel = BaseModel<T>.fromJson(
+        resp.data,
+        fromJsonFunc: fromJsonFunc,
+      );
 
-    return resp;
+      if (baseModel.suc != true) {
+        if (baseModel.errorMsg?.isNotEmpty == true) {
+          Fluttertoast.showToast(msg: baseModel.errorMsg!);
+        }
+        return;
+      }
+    }
+
+    return baseModel?.data;
   }
+
+  String baseUrl();
 }

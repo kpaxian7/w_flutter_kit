@@ -1,4 +1,4 @@
-export 'http/request_config.dart';
+export 'http/dio_config.dart';
 export 'http/request_helper.dart';
 export 'http/interceptor/logging_interceptor.dart';
 export 'http/requests.dart';
