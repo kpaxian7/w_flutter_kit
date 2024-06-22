@@ -18,14 +18,20 @@ class BaseModel<T> {
     var json, {
     T Function(Object? json)? fromJsonFunc,
   }) {
-    T? data;
-    if (T is String || T is num || T is bool) {
-      data = json["data"];
-    }
-
     return BaseModel(
       suc: json["suc"],
-      data: data ?? fromJsonFunc?.call(json["data"]),
+      data: fromJsonFunc?.call(json["data"]),
+      errorCode: json["errorCode"],
+      errorMsg: json["errorMsg"],
+    );
+  }
+
+  factory BaseModel.fromJsonWithDirectType(
+    var json,
+  ) {
+    return BaseModel(
+      suc: json["suc"],
+      data: json["data"],
       errorCode: json["errorCode"],
       errorMsg: json["errorMsg"],
     );

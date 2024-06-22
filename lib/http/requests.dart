@@ -21,7 +21,7 @@ abstract class Requests with DioConfig {
     Map<String, dynamic>? params,
     T Function(Object? json)? fromJsonFunc,
   }) async {
-    return await _performRequest(
+    return await _performRequest<T>(
       path,
       RequestMethod.get,
       params: params,
@@ -34,7 +34,7 @@ abstract class Requests with DioConfig {
     Map<String, dynamic>? params,
     T Function(Object? json)? fromJsonFunc,
   }) async {
-    return await _performRequest(
+    return await _performRequest<T>(
       path,
       RequestMethod.post,
       params: params,
@@ -63,10 +63,16 @@ abstract class Requests with DioConfig {
     }
     BaseModel? baseModel;
     if (resp != null) {
-      baseModel = BaseModel<T>.fromJson(
-        resp.data,
-        fromJsonFunc: fromJsonFunc,
-      );
+      if (fromJsonFunc != null) {
+        baseModel = BaseModel<T>.fromJson(
+          resp.data,
+          fromJsonFunc: fromJsonFunc,
+        );
+      } else {
+        baseModel = BaseModel<T>.fromJsonWithDirectType(
+          resp.data,
+        );
+      }
 
       if (baseModel.suc != true) {
         if (baseModel.errorMsg?.isNotEmpty == true) {
