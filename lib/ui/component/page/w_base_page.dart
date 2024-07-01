@@ -17,23 +17,33 @@ abstract class WBasePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: createViewModel(context),
-      child: Builder(
-        builder: (ctx) {
-          return WBaseInnerPage(
-            bodyWidget: bodyBuilder(ctx),
-            appbarWidget: appbarBuilder(ctx),
-            scaffoldColor: backgroundColor(),
-            onPageResume: onPageResume,
-            onPagePause: onPagePause,
-          );
-        },
-      ),
+    List<SingleChildWidget>? vmList = createViewModel(context);
+
+    Widget baseBuilder = Builder(
+      builder: (ctx) {
+        return WBaseInnerPage(
+          bodyWidget: bodyBuilder(ctx),
+          appbarWidget: appbarBuilder(ctx),
+          scaffoldColor: backgroundColor(),
+          onPageResume: onPageResume,
+          onPagePause: onPagePause,
+        );
+      },
     );
+
+    if (vmList?.isNotEmpty ?? false) {
+      return MultiProvider(
+        providers: vmList!,
+        child: baseBuilder,
+      );
+    } else {
+      return baseBuilder;
+    }
   }
 
-  List<SingleChildWidget> createViewModel(BuildContext context);
+  List<SingleChildWidget>? createViewModel(BuildContext context) {
+    return null;
+  }
 
   PreferredSizeWidget? appbarBuilder(BuildContext context) {
     return null;
@@ -44,6 +54,8 @@ abstract class WBasePage extends StatelessWidget {
   void onPageResume(BuildContext context) {}
 
   void onPagePause(BuildContext context) {}
+
+  void processLogic() {}
 
   Color backgroundColor() {
     return Colors.white;
@@ -57,6 +69,7 @@ class WBaseInnerPage extends StatefulWidget {
   final Color? scaffoldColor;
   final PageVisibleChanged? onPageResume;
   final PageVisibleChanged? onPagePause;
+  final Function? processLogicFunc;
 
   const WBaseInnerPage({
     required this.bodyWidget,
@@ -64,6 +77,7 @@ class WBaseInnerPage extends StatefulWidget {
     this.scaffoldColor,
     this.onPageResume,
     this.onPagePause,
+    this.processLogicFunc,
     super.key,
   });
 
@@ -72,6 +86,14 @@ class WBaseInnerPage extends StatefulWidget {
 }
 
 class _WBaseInnerPageState extends WLifecycleState<WBaseInnerPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      widget.processLogicFunc?.call();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
